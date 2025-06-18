@@ -345,7 +345,30 @@
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-600">备库IP</span>
-                            <span class="font-medium">${node.name.replace(/\\d+$/, match => parseInt(match)+1)}</span>
+                            <!--
+                            // <span class="font-medium">${node.name.replace(/\\d+$/, match => parseInt(match)+1)}</span>
+                            -->
+                            <span class="font-medium">${(() => {
+  const parts = node.name.split('.'); // 分割IP为四段
+  if (parts.length !== 4) return node.name; // 非标准IP格式直接返回原值
+  
+  let carry = 1; // 初始进位值（+1）
+  for (let i = 3; i >= 0; i--) { // 从最后一段向前逐段计算
+    const num = parseInt(parts[i], 10);
+    if (isNaN(num)) return node.name; // 非数字段直接终止
+    
+    const newNum = num + carry;
+    carry = Math.floor(newNum / 256); // 计算进位（超过255则进位1）
+    parts[i] = carry > 0 ? newNum % 256 : newNum; // 进位后重置当前段值
+    
+    if (carry === 0) break; // 无进位时提前终止循环
+  }
+  
+  // 处理最高位进位（如255.255.255.255+1）
+  if (carry > 0) return "IP溢出（超过255.255.255.255）";
+  
+  return parts.join('.');
+})()}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">部署架构</span>
