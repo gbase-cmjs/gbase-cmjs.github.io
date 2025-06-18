@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Gbase数据库架构-扬州仪征机房部署进展</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8fafc;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .status-success {
+            background-color: #f0fdf4;
+            color: #16a34a;
+        }
+        .status-warning {
+            background-color: #fffbeb;
+            color: #d97706;
+        }
+        .status-danger {
+            background-color: #fef2f2;
+            color: #dc2626;
+        }
+        .system-icon {
+            font-size: 2rem;
+            color: #4f46e5;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="text-3xl font-bold text-gray-800">Gbase数据库架构</h1>
+            <p class="text-gray-600">扬州仪征机房部署进展</p>
+        </div>
+        <!-- 已实现节点 -->
+        <div class="section">
+            <h2 class="section-title text-green-600">已实现节点</h2>
+            <div id="implementedNodes" class="cards-container"></div>
+        </div>
+        <!-- 正在推进节点 -->
+        <div class="section">
+            <h2 class="section-title text-yellow-600">正在推进节点</h2>
+            <div id="progressingNodes" class="cards-container"></div>
+        </div>
+        <!-- 未实现节点 -->
+        <div class="section">
+            <h2 class="section-title text-red-600">未实现节点</h2>
+            <div id="unimplementedNodes" class="cards-container"></div>
+        </div>
+    </div>
+    <script>
+        // 准备数据
+        const nodes = {
+            "已实现": [
+                {
+                    "name": "10.39.187.13",
+                    "value": {
+                        "业务系统": "智慧运维系统",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.102",
+                        "扬州仪征节点": "已实现",
+                        "无锡太科园灾备": "已实现 实际灾备库10.39.199.208"
+                    }
+                },
+                {
+                    "name": "10.39.187.44",
+                    "value": {
+                        "业务系统": "核心网工作台",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.116",
+                        "扬州仪征节点": "已实现",
+                        "无锡太科园灾备": "已实现 实际灾备库10.39.199.207"
+                    }
+                },
+                {
+                    "name": "10.39.187.11",
+                    "value": {
+                        "业务系统": "家客运维支撑系统",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.101",
+                        "扬州仪征节点": "已实现",
+                        "无锡太科园灾备": "正在推进"
+                    }
+                },
+                {
+                    "name": "10.39.187.19",
+                    "value": {
+                        "业务系统": "业务编排",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.105",
+                        "扬州仪征节点": "已实现",
+                        "无锡太科园灾备": "正在推进"
+                    }
+                },
+                {
+                    "name": "10.39.187.38",
+                    "value": {
+                        "业务系统": "投诉平台",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.113",
+                        "扬州仪征节点": "已实现",
+                        "无锡太科园灾备": "正在推进"
+                    }
+                },
+                {
+                    "name": "10.39.187.40",
+                    "value": {
+                        "业务系统": "终端物料",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.114",
+                        "扬州仪征节点": "已实现",
+                        "无锡太科园灾备": "正在推进"
+                    }
+                }
+            ],
+            "正在推进": [
+                {
+                    "name": "10.39.187.15",
+                    "value": {
+                        "业务系统": "综合资源（外线）系统 管线",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.103",
+                        "扬州仪征节点": "正在推进",
+                        "无锡太科园灾备": "未实现"
+                    }
+                },
+                {
+                    "name": "10.39.187.17",
+                    "value": {
+                        "业务系统": "综合资源（内线）系统-主线",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.104",
+                        "扬州仪征节点": "正在推进",
+                        "无锡太科园灾备": "未实现"
+                    }
+                },
+                {
+                    "name": "10.39.187.33",
+                    "value": {
+                        "业务系统": "网优平台",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.112",
+                        "扬州仪征节点": "正在推进",
+                        "无锡太科园灾备": "未实现"
+                    }
+                }
+            ],
+            "未实现": [
+                {
+                    "name": "10.39.187.21",
+                    "value": {
+                        "业务系统": "传输工作台",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.106",
+                        "扬州仪征节点": "未实现",
+                        "无锡太科园灾备": "未实现"
+                    }
+                },
+                {
+                    "name": "10.39.187.23",
+                    "value": {
+                        "业务系统": "故障管理系统",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.107",
+                        "扬州仪征节点": "未实现",
+                        "无锡太科园灾备": "未实现"
+                    }
+                },
+                {
+                    "name": "10.39.187.25",
+                    "value": {
+                        "业务系统": "性能数据共享平台（性能指标）",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.108",
+                        "扬州仪征节点": "未实现",
+                        "无锡太科园灾备": "未实现"
+                    }
+                },
+                {
+                    "name": "10.39.187.27",
+                    "value": {
+                        "业务系统": "综合代维系统",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.109",
+                        "扬州仪征节点": "未实现",
+                        "无锡太科园灾备": "未实现"
+                    }
+                },
+                {
+                    "name": "10.39.187.29",
+                    "value": {
+                        "业务系统": "集中性能系统",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.110",
+                        "扬州仪征节点": "未实现",
+                        "无锡太科园灾备": "未实现"
+                    }
+                },
+                {
+                    "name": "10.39.187.31",
+                    "value": {
+                        "业务系统": "智能体运营调度中心模块",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.111",
+                        "扬州仪征节点": "未实现",
+                        "无锡太科园灾备": "未实现"
+                    }
+                },
+                {
+                    "name": "10.39.187.42",
+                    "value": {
+                        "业务系统": "集团客户接入侧统一网管",
+                        "部署架构": "一主一备集中式",
+                        "VIP": "10.39.187.115",
+                        "扬州仪征节点": "未实现",
+                        "无锡太科园灾备": "未实现"
+                    }
+                },
+                {
+                    "name": "10.39.187.35",
+                    "value": {
+                        "业务系统": "政企门户",
+                        "部署架构": "分布式",
+                        "VIP": "无",
+                        "扬州仪征节点": "未实现",
+                        "无锡太科园灾备": "未实现",
+                        "备库IP": [
+                            "10.39.187.36",
+                            "10.39.187.37"
+                        ]
+                    }
+                }
+            ]
+        };
+        const systemIcons = {
+            "智慧运维系统": "fa-cogs",
+            "核心网工作台": "fa-network-wired",
+            "家客运维支撑系统": "fa-home",
+            "业务编排": "fa-project-diagram",
+            "投诉平台": "fa-headset",
+            "终端物料": "fa-boxes",
+            "综合资源（外线）系统 管线": "fa-road",
+            "综合资源（内线）系统-主线": "fa-plug",
+            "网优平台": "fa-signal",
+            "传输工作台": "fa-server",
+            "故障管理系统": "fa-bug",
+            "性能数据共享平台（性能指标）": "fa-chart-line",
+            "综合代维系统": "fa-users-cog",
+            "集中性能系统": "fa-tachometer-alt",
+            "智能体运营调度中心模块": "fa-robot",
+            "集团客户接入侧统一网管": "fa-building",
+            "政企门户": "fa-building"
+        };
+        // 生成卡片函数
+        function createCard(node) {
+            // 无锡太科园灾备状态
+            let wuxiStatusClass = '';
+            let wuxiStatusText = '';
+            if (node.value.无锡太科园灾备.includes('已实现')) {
+                wuxiStatusClass = 'status-success';
+                wuxiStatusText = '已实现灾备';
+            } else if (node.value.无锡太科园灾备.includes('正在推进')) {
+                wuxiStatusClass = 'status-warning';
+                wuxiStatusText = '正在推进';
+            } else {
+                wuxiStatusClass = 'status-danger';
+                wuxiStatusText = '未实现';
+            }
+            // 获取系统图标
+            const systemIcon = systemIcons[node.value.业务系统] || 'fa-server';
+            const card = document.createElement('div');
+            card.className = 'card-hover bg-white rounded-lg shadow p-4';
+            // 特殊处理政企门户节点
+            if (node.value.业务系统 === '政企门户' && node.value.备库IP) {
+                card.innerHTML = `
+                    <div class="text-center mb-4">
+                        <i class="fas ${systemIcon} system-icon"></i>
+                        <h3 class="text-xl font-bold">${node.value.业务系统}</h3>
+                        <p class="text-gray-600">主库IP: ${node.name}</p>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">备库IP1</span>
+                            <span class="font-medium">${node.value.备库IP[0]}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">备库IP2</span>
+                            <span class="font-medium">${node.value.备库IP[1]}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">部署架构</span>
+                            <span class="font-medium">${node.value.部署架构}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">VIP</span>
+                            <span class="font-medium">${node.value.VIP}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">无锡太科园灾备</span>
+                            <span class="font-medium ${wuxiStatusClass} px-2 py-1 rounded">${wuxiStatusText}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                card.innerHTML = `
+                    <div class="text-center mb-4">
+                        <i class="fas ${systemIcon} system-icon"></i>
+                        <h3 class="text-xl font-bold">${node.value.业务系统}</h3>
+                        <p class="text-gray-600">主库IP: ${node.name}</p>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">备库IP</span>
+                            <span class="font-medium">${node.name.replace(/\\d+$/, match => parseInt(match)+1)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">部署架构</span>
+                            <span class="font-medium">${node.value.部署架构}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">VIP</span>
+                            <span class="font-medium">${node.value.VIP || '无'}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">无锡太科园灾备</span>
+                            <span class="font-medium ${wuxiStatusClass} px-2 py-1 rounded">${wuxiStatusText}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            return card;
+        }
+        // 渲染已实现节点
+        const implementedContainer = document.getElementById('implementedNodes');
+        nodes['已实现'].forEach(node => {
+            implementedContainer.appendChild(createCard(node));
+        });
+        // 渲染正在推进节点
+        const progressingContainer = document.getElementById('progressingNodes');
+        nodes['正在推进'].forEach(node => {
+            progressingContainer.appendChild(createCard(node));
+        });
+        // 渲染未实现节点
+        const unimplementedContainer = document.getElementById('unimplementedNodes');
+        nodes['未实现'].forEach(node => {
+            unimplementedContainer.appendChild(createCard(node));
+        });
+    </script>
+</body>
+</html>
